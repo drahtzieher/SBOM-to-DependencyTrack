@@ -38,6 +38,8 @@ The default token output confirms that the SBOM has been successfully uploaded t
           project-name: <your project name>
           project-version: <your project version >
           path-to-sbom: <path to your sbom file>
+        env:
+          API_KEY: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
 ```
 
 ## Contribution
