@@ -20,7 +20,7 @@ runs:
   using: "composite"
   steps:
     - run: |
-            API_ENDPOINT="${{ inputs.dt-url }}/api/v1/project/lookup"
+            API_ENDPOINT="${{ inputs.dt-url }}"
             API_KEY="${{ secrets.DEPENDENCYTRACK_APIKEY }}"
             PROJECT_NAME="${{ inputs.project-name }}"
             PROJECT_VERSION="${{ inputs.project-version }}"
@@ -32,9 +32,11 @@ runs:
                     echo "Error: Either UUID or both project name and version must be provided."
                     exit 1
                 fi
+                echo "Curl command to retrieve project UUID:"
+                echo "curl -k -X GET -H \"X-Api-Key: $API_KEY\" \"$API_ENDPOINT/api/v1/project/lookup?name=$PROJECT_NAME&version=$PROJECT_VERSION\""
 
                 echo "GET project UUID"
-                response=$(curl -k -X GET  -H "X-Api-Key: $API_KEY" "$API_ENDPOINT?name=$PROJECT_NAME&version=$PROJECT_VERSION")
+                response=$(curl -k -X GET  -H "X-Api-Key: $API_KEY" "$API_ENDPOINT/api/v1/project/lookup?name=$PROJECT_NAME&version=$PROJECT_VERSION")
 
                 if echo "$response" | jq -e '.uuid' > /dev/null; then
                     UUID=$(echo "$response" | jq -r '.uuid')
@@ -46,9 +48,10 @@ runs:
             else
                 echo "UUID provided: $UUID. Skipping project lookup."
             fi
-
+            echo "Curl command to retrieve existing SBOM from Dependency Track:"
+            echo "curl -k -X GET -H \"X-Api-Key: $API_KEY\" \"$API_ENDPOINT/api/v1/bom/cyclonedx/project/${uuid}?format=json&variant=withVulnerabilities&download=true\""
             echo "GET existing SBOM from Dependency Track"
-            response=$(curl -k -X GET -H "X-Api-Key: $API_KEY" "${{inputs.dt-url}}/api/v1/bom/cyclonedx/project/${UUID}?format=json&variant=withVulnerabilities&download=true")
+            response=$(curl -k -X GET -H "X-Api-Key: $API_KEY" "$API_ENDPOINT/api/v1/bom/cyclonedx/project/${UUID}?format=json&variant=withVulnerabilities&download=true")
 
             if echo "$response" | jq -e '.errors' > /dev/null; then
                 echo "Error: Couldn't retrieve existing SBOM. Error message: $response"

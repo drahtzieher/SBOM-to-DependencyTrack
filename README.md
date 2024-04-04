@@ -7,12 +7,16 @@ This GitHub action requires a previously created and valid CycloneDX JSON Softwa
 You need to already have created the SBOM you wish to upload, e.g. with cdxgen, syft, trivy, etc.
 
 ## Inputs
+| Input Name       | Description                                                                                            | Required |
+|------------------|--------------------------------------------------------------------------------------------------------|----------|
+| dt-url           | Protocol, URL, and port of your OWASP Dependency Track API Server                                        | Yes      |
+| api-key          | Dependency Track API Key **Set as secret named DEPENDENCYTRACK_APIKEY!**                                  | Yes      |
+| project-name     | Project name                                                                                           | Yes      |
+| project-version  | Project version                                                                                        | Yes      |
+| project-uuid     | Project UUID **as substitute for project name & version**                                                | Yes      |
+| path-to-sbom     | Path to the SBOM to upload                                                                             | Yes      |
 
-1) Dependency-Track url - required
-2) Dependency-Track api-key - required
-3) Project Name - required
-4) Project Version - required
-5) SBOM path/to/cyclonedx.sbom.json - required
+
 
 ## Output
 The default token output confirms that the SBOM has been successfully uploaded to Dependency-Track.
