@@ -58,6 +58,7 @@ runs:
             else
                 echo "Existing SBOM retrieved from Dependency Track"
                 echo "$response" > existing_sbom.json
+                cat existing_sbom.json
             fi
       shell: bash
     - run: |
