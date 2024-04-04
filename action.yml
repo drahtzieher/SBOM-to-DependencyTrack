@@ -74,11 +74,11 @@ runs:
                         $val
                       end)
                     );
-                deepmerge({}; .)' $NEW_SBOM existing_sbom.json > aggregated_sbom.json
+                deepmerge({}; .)' "$NEW_SBOM "existing_sbom.json > aggregated_sbom.json
                 echo "Merged"
             else
                 echo "No existing SBOM found. Skipping merge operation."
-                cp $NEW_SBOM aggregated_sbom.json
+                cp "$NEW_SBOM" aggregated_sbom.json
             fi
       shell: bash
     - run: |
