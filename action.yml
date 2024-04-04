@@ -62,6 +62,16 @@ runs:
             fi
             if [ -f existing_sbom.json ]; then
                 echo "Merging the existing and new SBOMs"
+                # Check type of existing SBOM
+                existing_sbom_type=$(jq type existing_sbom.json)
+
+                # Check type of new SBOM
+                new_sbom_type=$(jq type "$NEW_SBOM")
+
+                # Print types
+                echo "Existing SBOM type: $existing_sbom_type"
+                echo "New SBOM type: $new_sbom_type"
+
                 jq -s 'def deepmerge(a;b):
                  reduce b[] as $item (a;
                     reduce ($item | keys_unsorted[]) as $key (.;
