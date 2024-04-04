@@ -57,7 +57,7 @@ runs:
                 exit 1
             else
                 echo "Existing SBOM retrieved from Dependency Track"
-                echo "$response" | jq '.'
+                echo "$response" > existing_sbom.json
             fi
       shell: bash
     - run: |
