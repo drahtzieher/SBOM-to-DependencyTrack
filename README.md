@@ -2,7 +2,7 @@
 
 # Introduction
 
-This GitHub action requires a previously created and valid CycloneDX JSON Software Bill-of-Materials (SBOM) as input. It will pull the current SBOM (inventory and vulnerabiities) from your Dependency Track instance, merge the two and upload the aggregate of all project dependencies to OWASP Dependency-Track.
+This GitHub action requires a previously created and valid CycloneDX JSON Software Bill-of-Materials (SBOM) as input. It will pull the current SBOM (inventory and vulnerabilities) from your OWASP Dependency-Track instance, merge the two and upload the aggregate of all project dependencies back to DTrack.
 
 You need to already have created the SBOM you wish to upload, e.g. with cdxgen, syft, trivy, etc.
 
