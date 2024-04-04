@@ -60,8 +60,6 @@ runs:
                 echo "$response" > existing_sbom.json
                 cat existing_sbom.json
             fi
-      shell: bash
-    - run: |
             if [ -f existing_sbom.json ]; then
                 echo "Merging the existing and new SBOMs"
                 jq -s 'def deepmerge(a;b):
@@ -81,37 +79,33 @@ runs:
                 echo "No existing SBOM found. Skipping merge operation."
                 cp "$NEW_SBOM" aggregated_sbom.json
             fi
-      shell: bash
-    - run: |
-          echo "encode the combined SBOM JSON and build payload"
-          encoded_sbom=$(jq -c . aggregated_sbom.json | base64 | tr -d '\n')
-          payloadfile=$(mktemp)
+            echo "encode the combined SBOM JSON and build payload"
+            encoded_sbom=$(jq -c . aggregated_sbom.json | base64 | tr -d '\n')
+            payloadfile=$(mktemp)
 
-            if [[ -z "$uuid" ]]; then
-              cat << EOF > "$payloadfile"
-          {
-            "projectName": "${{ inputs.project-name }}",
-            "projectVersion": "${{ inputs.project-version }}",
-            "autoCreate":true,
-            "bom": "$encoded_sbom"
-          }
-          EOF
-            else
-              cat << EOF > "$payloadfile"
-          {
-            "project": "${uuid}",
-            "autoCreate":true,
-            "bom": "$encoded_sbom"
-          }
-          EOF
-            fi
+              if [[ -z "$uuid" ]]; then
+                cat << EOF > "$payloadfile"
+            {
+              "projectName": "${{ inputs.project-name }}",
+              "projectVersion": "${{ inputs.project-version }}",
+              "autoCreate":true,
+              "bom": "$encoded_sbom"
+            }
+            EOF
+              else
+                cat << EOF > "$payloadfile"
+            {
+              "project": "${uuid}",
+              "autoCreate":true,
+              "bom": "$encoded_sbom"
+            }
+            EOF
+              fi
 
-          echo " PUT aggregated SBOM to Dependency Track"
-          curl -k -X PUT "${{ inputs.dt-url }}/api/v1/bom" \
-            -H "Content-Type: application/json" \
-            -H "X-Api-Key: ${{ inputs.api-key }}" \
-            -d @"$payloadfile"
-      shell: bash
-    - run: |
-          rm "existing_sbom.json" "aggregated_sbom.json"
+            echo " PUT aggregated SBOM to Dependency Track"
+            curl -k -X PUT "${{ inputs.dt-url }}/api/v1/bom" \
+              -H "Content-Type: application/json" \
+              -H "X-Api-Key: ${{ inputs.api-key }}" \
+              -d @"$payloadfile"
+            rm "existing_sbom.json" "aggregated_sbom.json"
       shell: bash
