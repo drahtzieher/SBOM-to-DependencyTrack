@@ -21,7 +21,7 @@ runs:
   steps:
     - run: |
             API_ENDPOINT="${{ inputs.dt-url }}"
-            API_KEY="${{ secrets.DEPENDENCYTRACK_APIKEY }}"
+            API_KEY="${ secrets.DEPENDENCYTRACK_APIKEY }"
             PROJECT_NAME="${{ inputs.project-name }}"
             PROJECT_VERSION="${{ inputs.project-version }}"
             NEW_SBOM="${{ inputs.path-to-sbom }}"
