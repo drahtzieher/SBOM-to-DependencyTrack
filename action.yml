@@ -1,0 +1,87 @@
+name: SBOM-to-DependencyTrack
+description: This action builds a CycloneDX Format Software Bill of Materials (SBOM) for a repository and sends it to a OWASP DT server
+inputs:
+  dt-url:
+    description: 'The URL of the Dependency-Track API server to send the SBOM to OWASP Dependency Track Server'
+    required: true
+  api-key:
+    description: 'The API key used to authenticate with the Dependency-Track API server.'
+    required: true
+  project-name:
+    description: 'Project name.'
+    required: true
+  project-version:
+    description: 'Project version.'
+    required: true
+  path-to-sbom:
+    description: 'path to the sbom to upload.'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - run: |
+          API_ENDPOINT="${{ inputs.dt-url }}/api/v1/project/lookup"
+          API_KEY="${{ inputs.api-key }}"
+          PROJECT_NAME="${{ inputs.project-name }}"
+          PROJECT_VERSION="${{ inputs.project-version }}"
+
+          response=$(curl -k -X GET  -H "X-Api-Key: $API_KEY" "$API_ENDPOINT?name=$PROJECT_NAME&version=$PROJECT_VERSION")
+
+          if echo "$response" | jq -e '.uuid' > /dev/null; then
+          uuid=$(echo "$response" | jq -r '.uuid')
+          echo "UUID: $uuid"
+          # API request to retrieve the existing SBOM
+          curl -k -X GET -H "X-Api-Key: $API_KEY" "${{inputs.dt-url}}/api/v1/bom/cyclonedx/project/${uuid}?format=json&variant=withVulnerabilities&download=true" > existing_sbom.json| jq '.'
+          else
+              uuid=""
+               echo '{}' > existing_sbom.json
+          fi
+      shell: bash
+    - run: |
+            jq -s 'def deepmerge(a;b):
+             reduce b[] as $item (a;
+                reduce ($item | keys_unsorted[]) as $key (.;
+                  $item[$key] as $val | ($val | type) as $type | .[$key] = if ($type == "object") then
+                    deepmerge({}; [if .[$key] == null then {} else .[$key] end, $val])
+                  elif ($type == "array") then
+                   (.[$key] + $val | unique)
+                  else
+                    $val
+                  end)
+                );
+            deepmerge({}; .)' bom.json existing_sbom.json > aggregated_sbom.json
+      shell: bash
+    - run: |
+          # Read the combined JSON content from the file
+          encoded_sbom=$(jq -c . aggregated_sbom.json | base64 | tr -d '\n')
+          payloadfile=$(mktemp)
+
+            if [[ -z "$uuid" ]]; then
+              cat << EOF > "$payloadfile"
+          {
+            "projectName": "${{ inputs.project-name }}",
+            "projectVersion": "${{ inputs.project-version }}",
+            "autoCreate":true,
+            "bom": "$encoded_sbom"
+          }
+          EOF
+            else
+              cat << EOF > "$payloadfile"
+          {
+            "project": "${uuid}",
+            "autoCreate":true,
+            "bom": "$encoded_sbom"
+          }
+          EOF
+            fi
+
+          # API request to upload the aggregated SBOM to Dependency Track
+          curl -k -X PUT "${{ inputs.dt-url }}/api/v1/bom" \
+            -H "Content-Type: application/json" \
+            -H "X-Api-Key: ${{ inputs.api-key }}" \
+            -d @"$payloadfile"
+
+      shell: bash
+    - run: |
+          rm "bom.json" "existing_sbom.json" "aggregated_sbom.json"
+      shell: bash
