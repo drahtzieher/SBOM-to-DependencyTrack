@@ -21,12 +21,13 @@ runs:
   steps:
     - run: |
             API_ENDPOINT="${{ inputs.dt-url }}"
-            API_KEY="${ secrets.DEPENDENCYTRACK_APIKEY }"
+            API_KEY="${{ secrets.DEPENDENCYTRACK_APIKEY }}"
             PROJECT_NAME="${{ inputs.project-name }}"
             PROJECT_VERSION="${{ inputs.project-version }}"
             NEW_SBOM="${{ inputs.path-to-sbom }}"
             UUID="${{ inputs.project-uuid }}"
-
+            echo "api key: $API_KEY"
+            echo "${{ secrets.DEPENDENCYTRACK_APIKEY }}"
             if [ -z "$UUID" ]; then
                 if [ -z "$PROJECT_NAME" ] || [ -z "$PROJECT_VERSION" ]; then
                     echo "Error: Either UUID or both project name and version must be provided."
