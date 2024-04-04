@@ -28,6 +28,7 @@ runs:
             UUID="${{ inputs.project-uuid }}"
             echo "api key: $API_KEY"
             echo "${{ secrets.DEPENDENCYTRACK_APIKEY }}"
+            echo "${{ DEPENDENCYTRACK_APIKEY }}"
             if [ -z "$UUID" ]; then
                 if [ -z "$PROJECT_NAME" ] || [ -z "$PROJECT_VERSION" ]; then
                     echo "Error: Either UUID or both project name and version must be provided."
