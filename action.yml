@@ -58,7 +58,6 @@ runs:
             else
                 echo "Existing SBOM retrieved from Dependency Track"
                 echo "$response" > existing_sbom.json
-                jq -C . existing_sbom.json | head -n 50
             fi
             if [ -f existing_sbom.json ]; then
                 echo "Merging the existing and new SBOMs"
@@ -80,6 +79,8 @@ runs:
                  echo "#####################"
                  echo "#####################"
                  echo "#####################"
+                 echo "eisting sbom:"
+                 jq -C . existing_sbom.json | head -n 50
                  echo "#####################"
                  echo "#####################"
                  echo "#####################"
