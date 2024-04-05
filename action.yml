@@ -75,20 +75,20 @@ runs:
                 echo "new sbom:"
                 jq -C . "$NEW_SBOM"
                 echo "New SBOM type: $new_sbom_type"
-
-                jq -s 'def deepmerge(a;b):
-                 reduce b[] as $item (a;
-                    reduce ($item | keys_unsorted[]) as $key (.;
-                      $item[$key] as $val | ($val | type) as $type | .[$key] = if ($type == "object") then
-                        deepmerge({}; [if .[$key] == null then {} else .[$key] end, $val])
-                      elif ($type == "array") then
-                       (.[$key] + $val | unique)
-                      else
-                        $val
-                      end)
-                    );
-                deepmerge({}; .)' "$NEW_SBOM" existing_sbom.json > aggregated_sbom.json
-                echo "Merged"
+                 jq '.metadata = {"timestamp": .metadata.timestamp, "tools": .metadata.tools, "component": .metadata.component} | del(.metadata.tools.components)' "$NEW_SBOM" > temp_new_sbom.json
+                 jq -s 'def deepmerge(a;b):
+                          reduce b[] as $item (a;
+                             reduce ($item | keys_unsorted[]) as $key (.;
+                               $item[$key] as $val | ($val | type) as $type | .[$key] = if ($type == "object") then
+                                 deepmerge({}; [if .[$key] == null then {} else .[$key] end, $val])
+                               elif ($type == "array") then
+                                (.[$key] + $val | unique)
+                               else
+                                 $val
+                               end)
+                             );
+                         deepmerge({}; .)' temp_new_sbom.json existing_sbom.json > aggregated_sbom.json
+                 rm temp_new_sbom.json
             else
                 echo "No existing SBOM found. Skipping merge operation."
                 cp "$NEW_SBOM" aggregated_sbom.json
