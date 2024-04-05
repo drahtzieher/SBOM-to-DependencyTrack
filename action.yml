@@ -83,7 +83,7 @@ runs:
                  echo "#####################"
                  echo "#####################"
                  echo "#####################"
-                 jq -C . temp_new_sbom
+                 jq -C . temp_new_sbom.json
                  jq -s 'def deepmerge(a;b):
                           reduce b[] as $item (a;
                              reduce ($item | keys_unsorted[]) as $key (.;
