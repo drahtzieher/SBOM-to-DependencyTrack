@@ -47,48 +47,48 @@ runs:
             else
                 echo "UUID provided: $UUID. Skipping project lookup."
             fi
-            echo "Curl command to retrieve existing SBOM from Dependency Track:"
-            echo "curl -k -X GET -H \"X-Api-Key: $API_KEY\" \"$API_ENDPOINT/api/v1/bom/cyclonedx/project/${uuid}?format=json&variant=withVulnerabilities&download=true\""
-            echo "GET existing SBOM from Dependency Track"
-            response=$(curl -k -X GET -H "X-Api-Key: $API_KEY" "$API_ENDPOINT/api/v1/bom/cyclonedx/project/${UUID}?format=json&variant=withVulnerabilities&download=true")
-
-            if echo "$response" | jq -e '.errors' > /dev/null; then
-                echo "Error: Couldn't retrieve existing SBOM. Error message: $response"
-                exit 1
-            else
-                echo "Existing SBOM retrieved from Dependency Track"
-                echo "$response" > existing_sbom.json
-            fi
-            jq -C . existing_sbom.json
-            if [ -f existing_sbom.json ]; then
-                echo "Merging the existing and new SBOMs"
-            jq '.metadata.tools = .metadata.tools.components | del(.metadata.tools[0].components) | .'  "$NEW_SBOM" > temp_new_sbom.json
-                 echo "temp"
-                 echo "################"
-                 echo "################"
-                 echo "################"
-                 echo "################"
-                 echo "################"
-                 jq -C . temp_new_sbom.json
-                 jq -s 'def deepmerge(a;b):
-                          reduce b[] as $item (a;
-                             reduce ($item | keys_unsorted[]) as $key (.;
-                               $item[$key] as $val | ($val | type) as $type | .[$key] = if ($type == "object") then
-                                 deepmerge({}; [if .[$key] == null then {} else .[$key] end, $val])
-                               elif ($type == "array") then
-                                (.[$key] + $val | unique)
-                               else
-                                 $val
-                               end)
-                             );
-                         deepmerge({}; .)' temp_new_sbom.json existing_sbom.json > aggregated_sbom.json
-                 rm temp_new_sbom.json
-            else
-                echo "No existing SBOM found. Skipping merge operation."
-                cp "$NEW_SBOM" aggregated_sbom.json
-            fi
+            #echo "Curl command to retrieve existing SBOM from Dependency Track:"
+            #echo "curl -k -X GET -H \"X-Api-Key: $API_KEY\" \"$API_ENDPOINT/api/v1/bom/cyclonedx/project/${uuid}?format=json&variant=withVulnerabilities&download=true\""
+            #echo "GET existing SBOM from Dependency Track"
+            #response=$(curl -k -X GET -H "X-Api-Key: $API_KEY" "$API_ENDPOINT/api/v1/bom/cyclonedx/project/${UUID}?format=json&variant=withVulnerabilities&download=true")
+            #
+            #if echo "$response" | jq -e '.errors' > /dev/null; then
+            #    echo "Error: Couldn't retrieve existing SBOM. Error message: $response"
+            #    exit 1
+            #else
+            #    echo "Existing SBOM retrieved from Dependency Track"
+            #    echo "$response" > existing_sbom.json
+            #fi
+            #jq -C . existing_sbom.json
+            #if [ -f existing_sbom.json ]; then
+            #    echo "Merging the existing and new SBOMs"
+            #jq '.metadata.tools = .metadata.tools.components | del(.metadata.tools[0].components) | .'  "$NEW_SBOM" > temp_new_sbom.json
+            #     echo "temp"
+            #     echo "################"
+            #     echo "################"
+            #     echo "################"
+            #     echo "################"
+            #     echo "################"
+            #     jq -C . temp_new_sbom.json
+            #     jq -s 'def deepmerge(a;b):
+            #              reduce b[] as $item (a;
+            #                 reduce ($item | keys_unsorted[]) as $key (.;
+            #                   $item[$key] as $val | ($val | type) as $type | .[$key] = if ($type == "object") then
+            #                     deepmerge({}; [if .[$key] == null then {} else .[$key] end, $val])
+            #                   elif ($type == "array") then
+            #                    (.[$key] + $val | unique)
+            #                   else
+            #                     $val
+            #                   end)
+            #                 );
+            #             deepmerge({}; .)' temp_new_sbom.json existing_sbom.json > aggregated_sbom.json
+            #     rm temp_new_sbom.json
+            #else
+            #    echo "No existing SBOM found. Skipping merge operation."
+            #    cp "$NEW_SBOM" aggregated_sbom.json
+            #fi
             echo "encode the combined SBOM JSON and build payload"
-            encoded_sbom=$(jq -c . aggregated_sbom.json | base64 | tr -d '\n')
+            encoded_sbom=$(jq -c . "$NEW_SBOM" | base64 | tr -d '\n')
             payloadfile=$(mktemp)
 
               if [[ -z "$uuid" ]]; then
@@ -115,5 +115,5 @@ runs:
               -H "Content-Type: application/json" \
               -H "X-Api-Key: ${{ inputs.api-key }}" \
               -d @"$payloadfile"
-            rm "existing_sbom.json" "aggregated_sbom.json"
+            #rm "existing_sbom.json" "aggregated_sbom.json"
       shell: bash
