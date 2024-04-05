@@ -68,8 +68,11 @@ runs:
                 # Check type of new SBOM
                 new_sbom_type=$(jq type "$NEW_SBOM")
 
+
                 # Print types
                 echo "Existing SBOM type: $existing_sbom_type"
+                echo "new sbom:"
+                cat "$NEW_SBOM"
                 echo "New SBOM type: $new_sbom_type"
 
                 jq -s 'def deepmerge(a;b):
