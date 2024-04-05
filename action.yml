@@ -62,6 +62,7 @@ runs:
             fi
             if [ -f existing_sbom.json ]; then
                 echo "Merging the existing and new SBOMs"
+
                 # Check type of existing SBOM
                 existing_sbom_type=$(jq type existing_sbom.json)
 
