@@ -72,19 +72,8 @@ runs:
                 # Print types
                 echo "Existing SBOM type: $existing_sbom_type"
                 echo "new sbom:"
-                jq -C . "$NEW_SBOM" | head -n 20
                 echo "New SBOM type: $new_sbom_type"
                  jq '.metadata.tools = .metadata.tools.components[0] | del(.metadata.tools.components) | .' "$NEW_SBOM" > temp_new_sbom.json
-                 echo "#####################"
-                 echo "#####################"
-                 echo "#####################"
-                 jq -C . temp_new_sbom.json | head -n 20
-                 echo "#####################"
-                 echo "#####################"
-                 echo "#####################"
-                 echo "#####################"
-                 echo "eisting sbom:"
-                 jq -C . existing_sbom.json | head -n 20
                  jq -s 'def deepmerge(a;b):
                           reduce b[] as $item (a;
                              reduce ($item | keys_unsorted[]) as $key (.;
