@@ -129,7 +129,9 @@ runs:
                  echo "Token received: $token"
 
                  # Print "Processing..." before starting the loop
+
                  echo -n "Processing..."
+
                  seen_processing=false
 
                  # Loop until processing switches from true to false
