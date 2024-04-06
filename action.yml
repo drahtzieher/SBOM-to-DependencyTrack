@@ -141,8 +141,8 @@ runs:
                      -H "X-Api-Key: $API_KEY" 2>&1)
                     # Echo the processing status response
                     echo "processing: $processing_status_response"
-                    processing_status=$(echo "$processing_status_response" | grep -o '"processing":"[^"]*' | sed 's/"processing":"//')
-                    echo "Processing status: $processing_status"
+                    #processing_status=$(echo "$processing_status_response" | grep -o '"processing":"[^"]*' | sed 's/"processing":"//')
+                    #echo "Processing status: $processing_status"
                     sleep 2
                  done
                else
