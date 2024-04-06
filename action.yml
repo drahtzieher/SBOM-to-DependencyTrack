@@ -134,43 +134,38 @@ runs:
                if [ -n "$token" ]; then
                  echo "Token received: $token"
 
-               # Initialize variables
-               found_true=false
-               found_false=false
+                 # Initialize variables
+                 found_true=false
+                 found_false=false
 
-               # Loop until we find at least one true followed by a false
-               while true; do
-                   # Retrieve processing status response
-                   processing_status_response=$(curl -k -X GET "$API_ENDPOINT/api/v1/bom/token/$token" \
-                       -H "X-Api-Key: $API_KEY" 2>&1)
+                 # Loop until we find at least one true followed by a false
+                 while true; do
+                     # Retrieve processing status response
+                     processing_status_response=$(curl -k -X GET "$API_ENDPOINT/api/v1/bom/token/$token" \
+                         -H "X-Api-Key: $API_KEY" 2>&1)
 
-                   # Check if the response contains "true" or "false"
-                   if [[ "$processing_status_response" == *'"processing":true'* ]]; then
-                       found_true=true
-                   elif [[ "$processing_status_response" == *'"processing":false'* ]]; then
-                       if $found_true; then
-                           found_false=true
-                           break
-                       fi
-                   fi
+                     # Check if the response contains "true" or "false"
+                     if [[ "$processing_status_response" == *'"processing":true'* ]]; then
+                         found_true=true
+                     elif [[ "$processing_status_response" == *'"processing":false'* ]]; then
+                         if $found_true; then
+                             found_false=true
+                             break
+                         fi
+                     fi
 
-                   # Sleep for 1 second before the next attempt
-                   sleep 1
-               done
-
-               # Output the final status and set the exit code accordingly
-               if $found_true && $found_false; then
-                   echo "Processing completed."
-                   exit 0
-               else
-                   echo "Error: Failed to complete processing."
-                   exit 1
-               fi
-
-
-
-                    sleep 2
+                     # Sleep for 1 second before the next attempt
+                     sleep 1
                  done
+
+                 # Output the final status and set the exit code accordingly
+                 if $found_true && $found_false; then
+                     echo "Processing completed."
+                     exit 0
+                 else
+                     echo "Error: Failed to complete processing."
+                     exit 1
+                 fi
                else
                  echo "no token received"
                  exit 1
