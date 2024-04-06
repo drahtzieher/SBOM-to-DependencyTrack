@@ -125,9 +125,23 @@ runs:
                 -H "X-Api-Key: $API_KEY" \
                 -d "$payload" 2>&1)
 
-              # Echo the response
-              echo "$post_response"
+                # Extract the token from the response
+               token=$(echo "$post_response" | jq -r '.token')
+
+               # Check if the token is not empty
+               if [ -n "$token" ]; then
+                 echo "Token received: $token"
 
 
-            #rm "existing_sbom.json" "aggregated_sbom.json"
+                 for ((i=1; i<=20; i++)); do
+                    echo "Attempt $i:"
+                    processing_status_response=$(curl -k -X GET "$API_ENDPOINT/api/v1/bom/token/$token" \
+                     -H "X-Api-Key: $API_KEY" 2>&1)
+                    # Echo the processing status response
+                    processing_status=$(echo "$processing_status_response" | jq -r '.processing')
+                    echo "Processing status: $processing_status"
+                    sleep 20
+                 done
+
+
       shell: bash
