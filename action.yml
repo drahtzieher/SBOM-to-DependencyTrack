@@ -127,7 +127,8 @@ runs:
 
                echo "$post_response"
                # Extract the token from the response
-               token=$(echo "$post_response" | tr -cd '[:print:]' | jq -r '.token')
+               token=$(echo "$post_response" | grep -o '"token":"[^"]*' | sed 's/"token":"//')
+
 
                # Check if the token is not empty
                if [ -n "$token" ]; then
