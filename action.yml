@@ -87,36 +87,42 @@ runs:
             #    echo "No existing SBOM found. Skipping merge operation."
             #    cp "$NEW_SBOM" aggregated_sbom.json
             #fi
-            echo "encode the combined SBOM JSON and build payload"
-            encoded_sbom=$(jq -c . "$NEW_SBOM" | base64 | tr -d '\n')
-            payloadfile=$(mktemp)
+            #       echo "encode the combined SBOM JSON and build payload"
+            #       encoded_sbom=$(jq -c . "$NEW_SBOM" | base64 | tr -d '\n')
+            #       payloadfile=$(mktemp)
+            #
+            #           cat << EOF > "$payloadfile"
+            #       {
+            #         "project": "${UUID}",
+            #         "autoCreate":true,
+            #         "bom": "$encoded_sbom"
+            #       }
+            #       EOF
+            #
+            #       echo "PUT aggregated SBOM to Dependency Track"
+            #       put_response=$(curl -ksS -X PUT "${{ inputs.dt-url }}/api/v1/bom" \
+            #         -H "Content-Type: application/json" \
+            #         -H "X-Api-Key: ${{ inputs.api-key }}" \
+            #         -d @"$payloadfile" 2>&1)
+            #
+            #       # Echo the response
+            #       echo "$put_response"
 
-                cat << EOF > "$payloadfile"
-            {
-              "project": "${UUID}",
-              "autoCreate":true,
-              "bom": "$encoded_sbom"
-            }
-            EOF
+             # Encode the SBOM file to base64
+              sbom_base64=$(base64 < "$NEW_SBOM")
 
-            echo "PUT aggregated SBOM to Dependency Track"
-            put_response=$(curl -ksS -X PUT "${{ inputs.dt-url }}/api/v1/bom" \
-              -H "Content-Type: application/json" \
-              -H "X-Api-Key: ${{ inputs.api-key }}" \
-              -d @"$payloadfile" 2>&1)
+              # Construct the payload
+              payload="{\"project\":\"$UUID\",\"autoCreate\":$auto_create,\"bom\":\"$sbom_base64\"}"
 
-            # Echo the response
-            echo "$put_response"
+              # Send the POST request
+              post_response=$(curl -ksS -X POST "${{ inputs.dt-url }}/v1/bom" \
+                -H "Content-Type: application/json" \
+                -H "X-Api-Key: ${{ inputs.api-key }}" \
+                -d "$payload" 2>&1)
 
-            # Extract JSON response if it exists
-            json_response=$(echo "$put_response" | jq -e . 2>/dev/null)
+              # Echo the response
+              echo "$post_response"
 
-            if [ $? -eq 0 ]; then
-              echo "JSON response:"
-              echo "$json_response"
-            else
-              echo "No valid JSON response found."
-            fi
 
             #rm "existing_sbom.json" "aggregated_sbom.json"
       shell: bash
