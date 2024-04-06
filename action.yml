@@ -125,7 +125,8 @@ runs:
                 -H "X-Api-Key: $API_KEY" \
                 -d "$payload" 2>&1)
 
-                # Extract the token from the response
+               echo "$post_response"
+               # Extract the token from the response
                token=$(echo "$post_response" | jq -r '.token')
 
                # Check if the token is not empty
@@ -140,8 +141,10 @@ runs:
                     # Echo the processing status response
                     processing_status=$(echo "$processing_status_response" | jq -r '.processing')
                     echo "Processing status: $processing_status"
-                    sleep 20
+                    sleep 2
                  done
-
+               else
+                 echo "no token received"
+               fi
 
       shell: bash
