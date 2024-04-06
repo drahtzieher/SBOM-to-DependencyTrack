@@ -117,10 +117,10 @@ runs:
               sbom_base64=$(base64 < "$NEW_SBOM")
 
               # Construct the payload
-              payload="{\"project\":\"$UUID\",\"autoCreate\":$AUTO_CREATE,\"bom\":\"$sbom_base64\"}"
+              payload="{\"project\":\"$UUID\",\"bom\":\"$sbom_base64\"}"
 
               # Send the POST request
-              post_response=$(curl -ksS -X POST "$API_ENDPOINT/api/v1/bom" \
+              post_response=$(curl -k -X PUT "$API_ENDPOINT/api/v1/bom" \
                 -H "Content-Type: application/json" \
                 -H "X-Api-Key: $API_KEY" \
                 -d "$payload" 2>&1)
