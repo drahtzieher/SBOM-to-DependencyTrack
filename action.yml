@@ -134,23 +134,46 @@ runs:
                if [ -n "$token" ]; then
                  echo "Token received: $token"
 
+               # Initialize variables
+               found_true=false
+               found_false=false
 
-                 for ((i=1; i<=20; i++)); do
-                    echo "Attempt $i:"
-                    processing_status_response=$(curl -k -X GET "$API_ENDPOINT/api/v1/bom/token/$token" \
-                     -H "X-Api-Key: $API_KEY" 2>&1)
-                    # Echo the processing status response
-                    if [[ "$processing_status_response" == *'"processing":true'* ]]; then
-                        echo "it is true"
-                    else
-                        echo "false"
-                    fi
+               # Loop until we find at least one true followed by a false
+               while true; do
+                   # Retrieve processing status response
+                   processing_status_response=$(curl -k -X GET "$API_ENDPOINT/api/v1/bom/token/$token" \
+                       -H "X-Api-Key: $API_KEY" 2>&1)
+
+                   # Check if the response contains "true" or "false"
+                   if [[ "$processing_status_response" == *'"processing":true'* ]]; then
+                       found_true=true
+                   elif [[ "$processing_status_response" == *'"processing":false'* ]]; then
+                       if $found_true; then
+                           found_false=true
+                           break
+                       fi
+                   fi
+
+                   # Sleep for 1 second before the next attempt
+                   sleep 1
+               done
+
+               # Output the final status and set the exit code accordingly
+               if $found_true && $found_false; then
+                   echo "Processing completed."
+                   exit 0
+               else
+                   echo "Error: Failed to complete processing."
+                   exit 1
+               fi
+
 
 
                     sleep 2
                  done
                else
                  echo "no token received"
+                 exit 1
                fi
 
       shell: bash
