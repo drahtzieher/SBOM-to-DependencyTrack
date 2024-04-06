@@ -104,7 +104,7 @@ runs:
               -H "Content-Type: application/json" \
               -H "X-Api-Key: ${{ inputs.api-key }}" \
               -d @"$payloadfile" 2>&1)
-            jq -C . "$put_response"
+            echo "$put_response"
 
             #rm "existing_sbom.json" "aggregated_sbom.json"
       shell: bash
