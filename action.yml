@@ -114,7 +114,7 @@ runs:
             #       echo "$put_response"
 
              # Encode the SBOM file to base64
-              sbom_base64=$(base64 < "$NEW_SBOM")
+             sbom_base64=$(base64 < "$NEW_SBOM" | tr -d '\n')
 
               # Construct the payload
               payload="{\"project\":\"$UUID\",\"bom\":\"$sbom_base64\"}"
