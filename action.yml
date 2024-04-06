@@ -91,31 +91,20 @@ runs:
             encoded_sbom=$(jq -c . "$NEW_SBOM" | base64 | tr -d '\n')
             payloadfile=$(mktemp)
 
-              if [[ -z "$uuid" ]]; then
                 cat << EOF > "$payloadfile"
             {
-              "projectName": "${{ inputs.project-name }}",
-              "projectVersion": "${{ inputs.project-version }}",
+              "project": "${UUID}",
               "autoCreate":true,
               "bom": "$encoded_sbom"
             }
             EOF
-              else
-                cat << EOF > "$payloadfile"
-            {
-              "project": "${uuid}",
-              "autoCreate":true,
-              "bom": "$encoded_sbom"
-            }
-            EOF
-              fi
-            jq -C . "$payloadfile"
+
             echo "PUT aggregated SBOM to Dependency Track"
             put_response=$(curl -k -X PUT "${{ inputs.dt-url }}/api/v1/bom" \
               -H "Content-Type: application/json" \
               -H "X-Api-Key: ${{ inputs.api-key }}" \
               -d @"$payloadfile" 2>&1)
-            echo "$put_response"
+            jq -C . "$put_response"
 
             #rm "existing_sbom.json" "aggregated_sbom.json"
       shell: bash
