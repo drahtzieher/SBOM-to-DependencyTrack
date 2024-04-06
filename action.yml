@@ -109,7 +109,7 @@ runs:
             }
             EOF
               fi
-            echo "$payloadfile"
+            jq -C . "$payloadfile"
             echo "PUT aggregated SBOM to Dependency Track"
             put_response=$(curl -k -X PUT "${{ inputs.dt-url }}/api/v1/bom" \
               -H "Content-Type: application/json" \
