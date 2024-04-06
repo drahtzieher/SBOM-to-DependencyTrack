@@ -104,7 +104,15 @@ runs:
               -H "Content-Type: application/json" \
               -H "X-Api-Key: ${{ inputs.api-key }}" \
               -d @"$payloadfile" 2>&1)
-            echo "$put_response"
+            # Capture stdout and stderr separately
+             stdout=$(echo "$put_response" | grep -vE "^  %" | tr -d '\r')
+             stderr=$(echo "$put_response" | grep -E "^  %" | tr -d '\r')
+
+             # Print both stdout and stderr
+             echo "STDOUT:"
+             echo "$stdout"
+             echo "STDERR:"
+             echo "$stderr"
 
             #rm "existing_sbom.json" "aggregated_sbom.json"
       shell: bash
