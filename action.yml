@@ -36,6 +36,7 @@ runs:
                     echo "Error: Either UUID or both project name and version must be provided."
                     exit 1
                 fi
+                echo "GET project UUID"
                 response=$(curl -k -X GET  -H "X-Api-Key: $API_KEY" "$API_ENDPOINT/api/v1/project/lookup?name=$PROJECT_NAME&version=$PROJECT_VERSION")
 
                 if echo "$response" | jq -e '.uuid' > /dev/null; then
@@ -116,19 +117,22 @@ runs:
               payload="{\"project\":\"$UUID\",\"bom\":\"$sbom_base64\"}"
 
               # Send the POST request
+              echo "PUT SBOM request"
               post_response=$(curl -k -X PUT "$API_ENDPOINT/api/v1/bom" \
                 -H "Content-Type: application/json" \
                 -H "X-Api-Key: $API_KEY" \
                 -d "$payload" 2>&1)
 
-                # Extract the token from the response
+              echo "$post_response"
+
+               # Extract the token from the response
                token=$(echo "$post_response" | grep -o '"token":"[^"]*' | sed 's/"token":"//')
 
                # Check if the token is not empty
                if [ -n "$token" ]; then
-                 echo "Token received: $token"
+                 echo "SBOM submitted successfully. Transaction token: $token"
 
-                 # Print "Processing..." before starting the loop
+                 # Print "Processing SBOM..." before starting the loop
 
                  echo -n "Processing..."
 
