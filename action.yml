@@ -140,7 +140,7 @@ runs:
                     processing_status_response=$(curl -k -X GET "$API_ENDPOINT/api/v1/bom/token/$token" \
                      -H "X-Api-Key: $API_KEY" 2>&1)
                     # Echo the processing status response
-                    processing_status=$(echo "$processing_status_response" | jq -r '.processing')
+                    processing_status=               token=$(echo "$processing_status_response" | grep -o '"processing":"[^"]*' | sed 's/"processing":"//')
                     echo "Processing status: $processing_status"
                     sleep 2
                  done
