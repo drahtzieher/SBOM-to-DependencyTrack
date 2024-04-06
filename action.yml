@@ -30,21 +30,17 @@ runs:
             NEW_SBOM="${{ inputs.path-to-sbom }}"
             UUID="${{ inputs.project-uuid }}"
             AUTO_CREATE="${{ inputs.auto-create }}"
-            echo "$API_KEY"
+
             if [ -z "$UUID" ]; then
                 if [ -z "$PROJECT_NAME" ] || [ -z "$PROJECT_VERSION" ]; then
                     echo "Error: Either UUID or both project name and version must be provided."
                     exit 1
                 fi
-                echo "Curl command to retrieve project UUID:"
-                echo "curl -k -X GET -H \"X-Api-Key: $API_KEY\" \"$API_ENDPOINT/api/v1/project/lookup?name=$PROJECT_NAME&version=$PROJECT_VERSION\""
-
-                echo "GET project UUID"
                 response=$(curl -k -X GET  -H "X-Api-Key: $API_KEY" "$API_ENDPOINT/api/v1/project/lookup?name=$PROJECT_NAME&version=$PROJECT_VERSION")
 
                 if echo "$response" | jq -e '.uuid' > /dev/null; then
                     UUID=$(echo "$response" | jq -r '.uuid')
-                    echo "UUID: $UUID"
+                    echo "Retrieved project UUID: $UUID"
                 else
                     echo "Couldn't retrieve project UUID, an error occured: $response"
                     exit 1
@@ -125,49 +121,40 @@ runs:
                 -H "X-Api-Key: $API_KEY" \
                 -d "$payload" 2>&1)
 
-               echo "$post_response"
-               # Extract the token from the response
+                # Extract the token from the response
                token=$(echo "$post_response" | grep -o '"token":"[^"]*' | sed 's/"token":"//')
-
 
                # Check if the token is not empty
                if [ -n "$token" ]; then
                  echo "Token received: $token"
 
-                 # Initialize variables
-                 found_true=false
-                 found_false=false
+                 # Print "Processing..." before starting the loop
+                 echo -n "Processing..."
+                 seen_processing=false
 
-                 # Loop until we find at least one true followed by a false
-                 while true; do
-                     # Retrieve processing status response
+                 # Loop until processing switches from true to false
+                 for ((i=1; i<=30; i++)); do
                      processing_status_response=$(curl -k -X GET "$API_ENDPOINT/api/v1/bom/token/$token" \
                          -H "X-Api-Key: $API_KEY" 2>&1)
 
-                     # Check if the response contains "true" or "false"
+                     echo -n "."
+
                      if [[ "$processing_status_response" == *'"processing":true'* ]]; then
-                         found_true=true
-                     elif [[ "$processing_status_response" == *'"processing":false'* ]]; then
-                         if $found_true; then
-                             found_false=true
-                             break
-                         fi
+                         seen_processing=true
+                     elif [[ "$processing_status_response" == *'"processing":false'* && $seen_processing == true ]]; then
+                         # If processing is false and we have seen it true before, it's done:
+                         echo "[completed]"
+                         exit 0  # Exit with success code
                      fi
 
-                     # Sleep for 1 second before the next attempt
                      sleep 1
                  done
 
-                 # Output the final status and set the exit code accordingly
-                 if $found_true && $found_false; then
-                     echo "Processing completed."
-                     exit 0
-                 else
-                     echo "Error: Failed to complete processing."
-                     exit 1
-                 fi
+                 # If the loop completes without finding completion, print "Incomplete" and exit with error code
+                 echo "SBOM ingestion was not completed within the timeout of 30 sec."
+                 exit 1
                else
-                 echo "no token received"
+                 echo "SBOM not submitted successfully: $post_response"
                  exit 1
                fi
 
