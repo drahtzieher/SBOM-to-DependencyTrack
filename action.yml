@@ -16,6 +16,10 @@ inputs:
   path-to-sbom:
     description: 'path to the sbom to upload.'
     required: true
+  auto-create:
+    description: 'true if you want a non-existent project to be generated or false if only projects already existing in DT should be valid'
+    required: false
+    default: false
 runs:
   using: "composite"
   steps:
@@ -25,6 +29,7 @@ runs:
             PROJECT_VERSION="${{ inputs.project-version }}"
             NEW_SBOM="${{ inputs.path-to-sbom }}"
             UUID="${{ inputs.project-uuid }}"
+            AUTO_CREATE="${{ inputs.auto-create }}"
             echo "$API_KEY"
             if [ -z "$UUID" ]; then
                 if [ -z "$PROJECT_NAME" ] || [ -z "$PROJECT_VERSION" ]; then
@@ -94,7 +99,7 @@ runs:
             #           cat << EOF > "$payloadfile"
             #       {
             #         "project": "${UUID}",
-            #         "autoCreate":true,
+            #         "autoCreate":false,
             #         "bom": "$encoded_sbom"
             #       }
             #       EOF
@@ -112,12 +117,12 @@ runs:
               sbom_base64=$(base64 < "$NEW_SBOM")
 
               # Construct the payload
-              payload="{\"project\":\"$UUID\",\"autoCreate\":$auto_create,\"bom\":\"$sbom_base64\"}"
+              payload="{\"project\":\"$UUID\",\"autoCreate\":$AUTO_CREATE,\"bom\":\"$sbom_base64\"}"
 
               # Send the POST request
-              post_response=$(curl -ksS -X POST "${{ inputs.dt-url }}/v1/bom" \
+              post_response=$(curl -ksS -X POST "$API_ENDPOINT/api/v1/bom" \
                 -H "Content-Type: application/json" \
-                -H "X-Api-Key: ${{ inputs.api-key }}" \
+                -H "X-Api-Key: $API_KEY" \
                 -d "$payload" 2>&1)
 
               # Echo the response
