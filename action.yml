@@ -114,7 +114,8 @@ runs:
             put_response=$(curl -k -X PUT "${{ inputs.dt-url }}/api/v1/bom" \
               -H "Content-Type: application/json" \
               -H "X-Api-Key: ${{ inputs.api-key }}" \
-              -d @"$payloadfile")
-              echo "$put_response"
+              -d @"$payloadfile" 2>&1)
+            echo "$put_response"
+
             #rm "existing_sbom.json" "aggregated_sbom.json"
       shell: bash
