@@ -100,21 +100,23 @@ runs:
             EOF
 
             echo "PUT aggregated SBOM to Dependency Track"
-            put_response=$(curl -k -X PUT "${{ inputs.dt-url }}/api/v1/bom" \
+            put_response=$(curl -ksS -X PUT "${{ inputs.dt-url }}/api/v1/bom" \
               -H "Content-Type: application/json" \
               -H "X-Api-Key: ${{ inputs.api-key }}" \
               -d @"$payloadfile" 2>&1)
 
-            echo "Length of API response: ${#put_response}"
-            # Capture stdout and stderr separately
-             stdout=$(echo "$put_response" | grep -vE "^  %" | tr -d '\r')
-             stderr=$(echo "$put_response" | grep -E "^  %" | tr -d '\r')
+            # Echo the response
+            echo "$put_response"
 
-             # Print both stdout and stderr
-             echo "STDOUT:"
-             echo "$stdout"
-             echo "STDERR:"
-             echo "$stderr"
+            # Extract JSON response if it exists
+            json_response=$(echo "$put_response" | jq -e . 2>/dev/null)
+
+            if [ $? -eq 0 ]; then
+              echo "JSON response:"
+              echo "$json_response"
+            else
+              echo "No valid JSON response found."
+            fi
 
             #rm "existing_sbom.json" "aggregated_sbom.json"
       shell: bash
