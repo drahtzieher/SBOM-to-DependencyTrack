@@ -109,8 +109,8 @@ runs:
             }
             EOF
               fi
-
-            echo " PUT aggregated SBOM to Dependency Track"
+            echo "$payloadfile"
+            echo "PUT aggregated SBOM to Dependency Track"
             put_response=$(curl -k -X PUT "${{ inputs.dt-url }}/api/v1/bom" \
               -H "Content-Type: application/json" \
               -H "X-Api-Key: ${{ inputs.api-key }}" \
